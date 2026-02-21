@@ -34,21 +34,21 @@ export async function scaffold(options: ScaffoldOptions) {
     installTimeout,
   } = options;
 
-  if (!useTs) {
+  const templateName = template || "default";
+  if (!useTs && templateName !== "default") {
     throw new Error(
-      "JavaScript support is coming soon! Please use TypeScript for now."
+      `Template "${templateName}" is not available for JavaScript yet. Please use the default template with --javascript.`
     );
   }
-
-  const templateName = template || "default";
+  const resolvedTemplateName = useTs ? templateName : "js-template";
 
   // Point to source templates
   // Resolve relative to this file's location in either src/lib or dist/src/lib
   const templateDir = path.resolve(
     __dirname,
     fs.existsSync(path.resolve(__dirname, "../../templates"))
-      ? `../../templates/${templateName}` // Development (src/lib -> src/templates)
-      : `../../../src/templates/${templateName}` // Production (dist/src/lib -> src/templates)
+      ? `../../templates/${resolvedTemplateName}` // Development (src/lib -> src/templates)
+      : `../../../src/templates/${resolvedTemplateName}` // Production (dist/src/lib -> src/templates)
   );
   const targetDir = path.resolve(process.cwd(), appName);
 
@@ -127,14 +127,17 @@ export async function scaffold(options: ScaffoldOptions) {
   const filesToProcess = [
     path.join(targetDir, "package.json"),
     path.join(targetDir, "src/contexts/WalletProvider.tsx"),
+    path.join(targetDir, "src/contexts/WalletProvider.jsx"),
     path.join(targetDir, "src/lib/stellar-wallet-kit.ts"),
+    path.join(targetDir, "src/lib/stellar-wallet-kit.js"),
     path.join(targetDir, "src/hooks/useSorobanContract.ts"),
-    path.join(targetDir, ".env.example"), // If we add placeholders there later
+    path.join(targetDir, "src/hooks/useSorobanContract.js"),
+    path.join(targetDir, ".env.example"),
   ];
 
-  for (const file of filesToProcess) {
-    if (await fs.pathExists(file)) {
-      await replaceInFile(file, config);
+  for (const filePath of filesToProcess) {
+    if (await fs.pathExists(filePath)) {
+      await replaceInFile(filePath, config);
     }
   }
 

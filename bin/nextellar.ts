@@ -90,6 +90,7 @@ program
 program.action(async (projectName, options) => {
   const template = options.template || "default";
   const validTemplates = ["default", "minimal", "defi"];
+  const useTs = options.typescript && !options.javascript;
 
   if (!validTemplates.includes(template)) {
     console.error(
@@ -107,12 +108,11 @@ program.action(async (projectName, options) => {
     );
     console.log(`  ${pc.dim("Modern Next.js + Stellar toolkit")}\n`);
     console.log(`  ${pc.magenta("◆")} Project: ${pc.cyan(projectName)}`);
-    console.log(`  ${pc.magenta("◆")} Type:    ${pc.cyan("TypeScript")}`);
+    console.log(`  ${pc.magenta("◆")} Type:    ${pc.cyan(useTs ? "TypeScript" : "JavaScript")}`);
     console.log(`  ${pc.magenta("◆")} Template: ${pc.cyan(template)}`);
     console.log(`  ${pc.magenta("◆")} Contracts: ${pc.cyan(options.withContracts ? "Yes" : "No")}\n`);
   }
 
-  const useTs = options.typescript && !options.javascript;
   const wallets = options.wallets ? options.wallets.split(",") : [];
   try {
     await scaffold({
