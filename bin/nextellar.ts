@@ -12,6 +12,8 @@ import { detectPackageManager } from "../src/lib/install.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// (doctor subcommand is registered later after `program` is created)
+
 // Find package.json regardless of whether we are in src/bin or dist/bin
 const findPkg = () => {
   const paths = [
@@ -29,6 +31,22 @@ const findPkg = () => {
 const pkg = findPkg();
 
 const program = new Command();
+
+// Register a dedicated `doctor` subcommand so Commander handles `--json`.
+program
+  .command("doctor")
+  .description("Run environment diagnostics")
+  .option("--json", "output results as JSON for CI integration")
+  .action(async (cmdOpts: { json?: boolean }) => {
+    try {
+      const { runDoctor } = await import("../src/lib/doctor.js");
+      const exitCode = await runDoctor({ json: !!cmdOpts.json });
+      process.exit(exitCode);
+    } catch (err: any) {
+      console.error("Failed to run doctor:", err?.message || err);
+      process.exit(1);
+    }
+  });
 
 program
   .name("nextellar")
